@@ -1,0 +1,319 @@
+<!DOCTYPE HTML>
+<!--
+	Dopetrope by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>Tyler DiPentima</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+	</head>
+	<body class="left-sidebar is-preload">
+		<div id="page-wrapper">
+
+			<!-- Header -->
+				<section id="header">
+
+					<!-- Logo -->
+					<h1><a href="https://www.linkedin.com/in/tyler-dipentima/" target="_blank">Tyler DiPentima</a></h1>
+
+					<!-- Nav -->
+						<nav id="nav">
+							<ul>
+								<li><a href="index.html">Home</a></li>
+								<li><a href="Project_Main_Page.html">Projects</a></li>
+								<li><a href="Blog_Main_Page.html">Blogs</a></li>
+								<li><a href="About Me.html">About Me</a></li>
+							</ul>
+						</nav>
+
+				</section>
+
+			<!-- Main -->
+				<section id="main">
+					<div class="container">
+						<div class="row">
+							<div class="col-4 col-12-medium">
+
+								<!-- Sidebar -->
+								    
+									<section class="box">
+										<a href="#" class="image featured"><img src="images/pic09.jpg" alt="" /></a>
+										<header>
+											<h3>My Latest Project</h3>
+										</header>
+										<p>Add description of latest project here</p>
+										<footer>
+											<a href="#" class="button alt">Learn More</a>
+										</footer>
+									</section>
+									<section class="box">
+										<header>
+											<h3>Similar Posts</h3>
+										</header>
+										<p>Some other content that may interest you</p>
+										<ul class="divided">
+											<li><a href="#">Example 1 (Blog)</a></li>
+											<li><a href="#">Example 2 (Project)</a></li>
+										</ul>
+										<!-- Not using this button for now
+										<footer>
+											<a href="#" class="button alt">Ipsum consequat</a>
+										</footer>
+										-->
+									</section>
+
+							</div>
+							<div class="col-8 col-12-medium imp-medium">
+
+								<!-- Content -->
+									<article class="box post">
+										<a class="image featured"><img src="images/Mario_Banner.jpg" alt=""  /></a>
+										<header>
+											<h2>Super Mario Game for GameBoy Advanced</h2>
+											<p>A mock of a childhood favorite written in C</p>
+										</header>
+										<p>
+										    In one of my earlier academic projects, I was asked to create a video game using the GBA libraries for C.
+											Growing up playing the 2D scrollers of the Super Mario series on my parent's Nintendo 64, 
+											I chose to make my own version to better understand what went into developing such a game. My game consisted
+											of four levels, each with the goal of getting the player to the goal marked by a flag. The player had to reach
+											 this goal while avoiding enemy sprites. While a simple game conceptually, there was a lot to be done under the hood. 
+										</p>
+										<p>
+											<video width="640" height="360" controls>
+												<source src="Media/Super Mario Game - Made with Clipchamp.mp4" type="video/mp4">
+												Your browser does not support the video tag.
+											</video>
+										</p>
+										<section>
+											<header>
+												<h3>Graphics</h3>
+											</header>
+											<p>
+												One of the harder tasks to tackle was getting the graphics on the screen and to have frame updates without tearing.
+												Tearing occurs when memory access is too slow and the user can visually see two parts of the screen that are out of sync.
+												Since each pixel on the display needs to be updated each frame, it is crucial that the update process is efficient to avoiding
+												any visual artifacts. Here I leveraged Direct Memory Access to ensure that the game experienced limited tearing.
+											</p>
+												<pre><code>
+			void fillScreenDMA(volatile u16 color) {
+				DMA[DMA_CHANNEL_3].src = &color;
+				DMA[DMA_CHANNEL_3].dst = videoBuffer;
+				DMA[DMA_CHANNEL_3].cnt = DMA_ON | DMA_SOURCE_FIXED| (240*160);
+			}
+			void drawImageDMA(int row, int col, int width, int height, const u16 *image) {
+				for(int i = 0;i < height;i++){
+					DMA[DMA_CHANNEL_3].src = image+(width*i);
+					DMA[DMA_CHANNEL_3].dst = &videoBuffer[OFFSET(row+i,col,240)];
+					DMA[DMA_CHANNEL_3].cnt = DMA_ON | width;
+				}
+			}
+												</code>
+											    </pre>
+											<p>
+												As seen above, this was done by directly manipulating the values of the DMA registers to tell it the data source and 
+												data destination memory addresses. The control register was then set to turn DMA on and configure other relevant settings.
+												Utilizing this I/O operation to speed up the frame updates, tearing was reduced significantly and I was able to update the game's 
+												frame with writing, shapes, and sprites as desired. Sprite movement was simulated by re-writing a sprite at a constantly shifting
+												new position in a next frame.  
+											</p>
+											<p>
+												As you can see, this was more in-depth for the player's character. I decided to animate the movements
+												a bit for Mario by having the program alternate between writing two different images, each with a different one of his feet 
+												leading to resemble a walking animation.
+											</p>
+											<center><a ><img src="images/Mario1small.png" alt=""/><a ><img src="images/mariosmall.png" alt=""/></a></center>
+											<header>
+												<h3>Game Logic</h3>
+											</header>
+											<p>
+												The logic for the game was handled by a two-level Finite State Machine that would respond to user keyboard input. Accepted input included
+												the arrow keys for movement and jumping, Enter for Start, and Backspace for Select. When in the Play state, the transition triggers
+												were defined as any collisions between the player sprite and the enemy or goal sprites. The top-level FSM can be seen below, showing the flow between
+												game states and what triggers state transition.
+											</p>
+											<center><a><img src="images/Mario_Top_FSM.jpg" alt="" height="350" width="700"/></a></center>
+                                            <p>
+												You may have noticed that the 'Level' variable plays an important role here in deciding what state to transition to.
+												This variable is used to track the current level the player is on and is crucial in determining what level's structural and enemy layout to
+												display. The bottom-level FSM used within the Play state is responsible for processing this level variable and filling the screen with the 
+												correct sprites and shapes at first load. From there, the screen pixel values are determined by movement rules detailing how the player sprite
+												moves with user input and how the enemy sprite moves across the screen over time. This bottom-level FSM gets complex but it can be
+												broken down by user input into decision trees.
+											</p>
+											<center><a><img src="images/Bot_Mario_FSM.jpg" alt="" height="350" width="700"/></a></center>
+											<p>
+												In addition to the frame updates in response to user input and the constant, hard-coded movement updates of the enemy sprites, gravity was simulated.
+												This was done by constantly trying to move the player sprite origin down each frame at a rate less than the upward rate associated with jumping. If 
+												the player was on the ground already, wall collision with the ground would be detected and no movement would occur. If in the air,
+												the player sprite would fall down towards the ground as expected.
+											</p>
+											<header>
+												<h3>What I Learned</h3>
+											</header>
+											<p>
+												This project was my first taste of video game development and was a great learning experience that taught me new ways to interact with I/O devices in C. Designing the 
+												FSM from scratch prepared me for future system design projects.
+											</p>
+										</section>
+									</article>
+
+							</div>
+						</div>
+					</div>
+				</section>
+
+			<!-- Footer -->
+			<section id="footer">
+				<div class="container">
+					<div class="row">
+						<!--
+						<div class="col-8 col-12-medium">
+							<section>
+								<header>
+									<h2>Blandit nisl adipiscing</h2>
+								</header>
+								<ul class="dates">
+									<li>
+										<span class="date">Jan <strong>27</strong></span>
+										<h3><a href="#">Lorem dolor sit amet veroeros</a></h3>
+										<p>Ipsum dolor sit amet veroeros consequat blandit ipsum phasellus lorem consequat etiam.</p>
+									</li>
+									<li>
+										<span class="date">Jan <strong>23</strong></span>
+										<h3><a href="#">Ipsum sed blandit nisl consequat</a></h3>
+										<p>Blandit phasellus lorem ipsum dolor tempor sapien tortor hendrerit adipiscing feugiat lorem.</p>
+									</li>
+									<li>
+										<span class="date">Jan <strong>15</strong></span>
+										<h3><a href="#">Magna tempus lorem feugiat</a></h3>
+										<p>Dolore consequat sed phasellus lorem sed etiam nullam dolor etiam sed amet sit consequat.</p>
+									</li>
+									<li>
+										<span class="date">Jan <strong>12</strong></span>
+										<h3><a href="#">Dolore tempus ipsum feugiat nulla</a></h3>
+										<p>Feugiat lorem dolor sed nullam tempus lorem ipsum dolor sit amet nullam consequat.</p>
+									</li>
+									<li>
+										<span class="date">Jan <strong>10</strong></span>
+										<h3><a href="#">Blandit tempus aliquam?</a></h3>
+										<p>Feugiat sed tempus blandit tempus adipiscing nisl lorem ipsum dolor sit amet dolore.</p>
+									</li>
+								</ul>
+							</section>
+						</div>
+						<div class="col-4 col-12-medium">
+							<section>
+								<header>
+									<h2></h2>
+								</header>
+								<a href="#" class="image featured"><img src="images/pic10.jpg" alt="" /></a>
+								<p>
+									This is <strong>Dopetrope</strong> a free, fully responsive HTML5 site template by
+									<a href="http://twitter.com/ajlkn">AJ</a> for <a href="http://html5up.net/">HTML5 UP</a> It's released for free under
+									the <a href="http://html5up.net/license/">Creative Commons Attribution</a> license so feel free to use it for any personal or commercial project &ndash; just don't forget to credit us!
+								</p>
+								<footer>
+									<ul class="actions">
+										<li><a href="#" class="button">Find out more</a></li>
+									</ul>
+								</footer>
+							</section>
+						</div>
+						-->
+						<div class="col-4 col-6-medium col-12-small">
+							<section>
+								<header>
+									<h2>Recent Online Learning</h2>
+								</header>
+								<ul class="divided">
+									<li><a href="https://cloud.google.com/blog/topics/training-certifications/12-days-of-no-cost-generative-ai-training?mkt_tok=ODA4LUdKVy0zMTQAAAGP2YNFoqIERCMWV0Amq18FYvWkGcjf7m7jHTNNJsVeNtvLX1NA6pFfTFYwDroT-zFbcEThQ-VBWzReeCrTV4cBP_8ToEn6ag2t1UUJUNgrowC5xqfYJCY" target="_blank">Google Generative AI</a></li>
+									<!--
+									<li><a href="#">Lorem ipsum dolor sit amet sit veroeros</a></li>
+									<li><a href="#">Sed et blandit consequat sed tlorem blandit</a></li>
+									<li><a href="#">Adipiscing feugiat phasellus sed tempus</a></li>
+									<li><a href="#">Hendrerit tortor vitae mattis tempor sapien</a></li>
+									<li><a href="#">Sem feugiat sapien id suscipit magna felis nec</a></li>
+									<li><a href="#">Elit class aptent taciti sociosqu ad litora</a></li>
+									-->
+								</ul>
+							</section>
+						</div>
+						<div class="col-4 col-6-medium col-12-small">
+							<section>
+								<header>
+									<h2>My Reading List</h2>
+								</header>
+								<ul class="divided">
+									<li><a href="https://www.goodreads.com/book/show/40796173-sprawlball?ref=nav_sb_ss_1_10" target="_blank">SprawlBall -- Data Evolution of the NBA</a></li>
+									<li><a href="https://www.goodreads.com/book/show/37822619-astroball?from_search=true&from_srp=true&qid=lECDPCfqmH&rank=1" target="_blank">Astroball -- Data Analytics in Baseball </a></li>
+									<li><a href="https://www.goodreads.com/book/show/42348376-secrets-of-sand-hill-road" target="_blank">Secrets of Sand Hill Road -- Venture Capital</a></li>
+									<!--
+									<li><a href="#">Lorem ipsum dolor sit amet sit veroeros</a></li>
+									<li><a href="#">Sed et blandit consequat sed tlorem blandit</a></li>
+									<li><a href="#">Adipiscing feugiat phasellus sed tempus</a></li>
+									<li><a href="#">Hendrerit tortor vitae mattis tempor sapien</a></li>
+									<li><a href="#">Sem feugiat sapien id suscipit magna felis nec</a></li>
+									<li><a href="#">Elit class aptent taciti sociosqu ad litora</a></li>
+									<li><a href="#">Elit class aptent taciti sociosqu ad litora</a></li>
+									<li><a href="#">Elit class aptent taciti sociosqu ad litora</a></li>
+									-->
+								</ul>
+							</section>
+						</div>
+						<div class="col-4 col-12-medium">
+							<section>
+								<header>
+									<h2>Social</h2>
+								</header>
+								<ul class="social">
+									<li><a class="icon brands fa-linkedin-in" href="https://www.linkedin.com/in/tyler-dipentima/" target="_blank"><span class="label">LinkedIn</span></a></li>
+								</ul>
+								<ul class="contact">
+									<li>
+										<h3>Residence</h3>
+										<p>
+											Atlanta, Georgia
+										</p>
+									</li>
+									<li>
+										<h3>Mail</h3>
+										<p>tdipentima3@gatech.edu</p>
+									</li>
+									<li>
+										<h3>Phone</h3>
+										<p>(954) 770-0483</p>
+									</li>
+								</ul>
+							</section>
+						</div>
+						<div class="col-12">
+
+							<!-- Copyright -->
+								<div id="copyright">
+									<ul class="links">
+										<li>&copy; Untitled. All rights reserved.</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+									</ul>
+								</div>
+
+						</div>
+					</div>
+				</div>
+			</section>
+
+		</div>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.dropotron.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+
+	</body>
+</html>

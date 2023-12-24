@@ -1,0 +1,314 @@
+<!DOCTYPE HTML>
+<!--
+	Dopetrope by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>Tyler DiPentima</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+	</head>
+	<body class="left-sidebar is-preload">
+		<div id="page-wrapper">
+
+			<!-- Header -->
+				<section id="header">
+
+					<!-- Logo -->
+					<h1><a href="https://www.linkedin.com/in/tyler-dipentima/" target="_blank">Tyler DiPentima</a></h1>
+
+					<!-- Nav -->
+						<nav id="nav">
+							<ul>
+								<li><a href="index.html">Home</a></li>
+								<li><a href="Project_Main_Page.html">Projects</a></li>
+								<li><a href="Blog_Main_Page.html">Blogs</a></li>
+								<li><a href="About Me.html">About Me</a></li>
+							</ul>
+						</nav>
+
+				</section>
+
+			<!-- Main -->
+				<section id="main">
+					<div class="container">
+						<div class="row">
+							<div class="col-4 col-12-medium">
+
+								<!-- Sidebar -->
+								    
+									<section class="box">
+										<a href="#" class="image featured"><img src="images/pic09.jpg" alt="" /></a>
+										<header>
+											<h3>My Latest Project</h3>
+										</header>
+										<p>Add description of latest project here</p>
+										<footer>
+											<a href="#" class="button alt">Learn More</a>
+										</footer>
+									</section>
+									<section class="box">
+										<header>
+											<h3>Similar Posts</h3>
+										</header>
+										<p>Some other content that may interest you</p>
+										<ul class="divided">
+											<li><a href="#">Example 1 (Blog)</a></li>
+											<li><a href="#">Example 2 (Project)</a></li>
+										</ul>
+										<!-- Not using this button for now
+										<footer>
+											<a href="#" class="button alt">Ipsum consequat</a>
+										</footer>
+										-->
+									</section>
+
+							</div>
+							<div class="col-8 col-12-medium imp-medium">
+
+								<!-- Content -->
+									<article class="box post">
+										<a class="image featured"><img src="images/Capstone_Banner.jpg" alt=""  /></a>
+										<header>
+											<h2>Transgenic Mosquito Sorter</h2>
+											<p>In Collaboration with the CDC & Target Malaria</p>
+										</header>
+										<p>
+										    Before 2021, the CDC and the Bill Gates Foundation formed a partnership to achieve a common goal, the 
+											prevention and eradication of Malaria under the <a href="https://targetmalaria.org/" target="_blank">Target Malaria</a> initiative. In their research, they 
+											discovered a genetic modifier that was able to alter mosquito larvae so that they are not able to carry
+											Malaria. The idea was that releasing these transgenic mosquitoes into the ecosystem would allow these 
+											genetics to control the mosquito population and eventually lead to lower population sizes for the mosquito
+											species that transmit Malaria with the highest frequency. <a href="https://targetmalaria.org/about-us/our-approach" target="_blank">More Details</a>
+										</p>
+										<p>
+											However, there was a huge bottleneck blocking this initiative from taking off. The genetic modification was not 100% successful and releasing larvae with the failed 
+											mutation would only add to the spread of Malaria. This led to the need for scientists to look at the modified larvae individually under a microscope
+											 to see if they were suitable to be released into the ecosystem, marked by the presence of flourescent protein markers in successful mutations. As you can imagine this was a time-intensive process prone 
+											 to human error. Additionally, to truely impact an ecosystem the larvae would have to be released in large amounts and over time, 
+											 making this manual approach largely unrealistic. The team and I were approached and challenged to reinvent this process and
+											 enable the initiative to take flight.
+										</p>
+										<section>
+											<header>
+												<h3>Defining the Problem</h3>
+											</header>
+											<p>
+												With the goal of creating a system that is low-cost and easy to repair to enable its use in countries with limited access
+												to resources, we strived to keep things simple. Additional needs of
+												the project were defined as requiring a continuous flow of mosquitoes through the system for constant sorting and higher throughput while not damaging the larvae. 
+												This was achieved using a pump to move the larvae through transparent, water-filled tubing at a steady rate.
+												The previous manual task could be broken down into two stages: sensing and sorting.
+											</p>
+											<header>
+												<h3>Sensing</h3>
+											</header>
+											<p>
+												For the sensing side of things we first had to find a laser with a wavelength that would optimally excite the flourescent protein markers.
+												Through research and successful lab testing, we decided to proceed with a 532 nm line laser. A line laser
+												was chosen over a point laser allowing for protein marker activation over a larger length of tubing. This helped to ensure
+												that our sensor would catch a positive flourescent case even if not constantly taking measurements as sampling rate varies amongst sensors.
+												For the sensor, we experimented with RGB sensors and vision systems before realizing that the best way to isolate
+												the emitted flourescence was to use a lux sensor encased in red acetate to filter out the laser light and any ambient light.
+												Once we established a baseline reading for the sensor, we were able to flow flourescent samples through our device and observe
+												spikes in the lux readings as the samples passed through. The major challenge here was finding the right combination of laser wavelength and 
+												sensor sensitivity to be able to observe the flourescence from the protein markers. The final sensing system is what is shown above.
+											</p>
+											<header>
+												<h3>Sorting</h3>
+											</header>
+											<p>
+												Once sensing was tuned and considered reliable, the team turned its attention to the sorting mechanism. The physical system
+												for sorting consisted of a stepper motor with a 3D printed coupling to hold the tubing and control the direction of flow at the 
+												exit of our system into one of two containers.
+											</p>
+											<center><a><img src="images/Sorter_Image.jpg" alt="" height="300" width="400" /></a></center>
+											<p>
+													The communication between the sensor and the sorter was where the software came in. Given the nature of the problem, the default
+												positioning of the flow was into the Waste Bin. Ideally, only failed mutations would end up here but if errors occurred there would be successful
+												mutations here as well. This was preferred over the case where failed mutations were wrongly sorted and prepared for release into the wild, let's call this the Positive Bin. Programming the microcontroller (Arduino w/ i2c comms),
+												I was able to create a binary queue system that would tell the sorter when to divert the larvae to the Positive Bin. Using additional sensors to detect any passing larvae, the 
+												queue added a 0 entry to the end of the queue by default when a larvae was detected entering the sensing portion of the system. If the flourescence was detected, this value was changed to a 1.
+												Towards the end of the system right before sorting, another sensor popped values off of the queue, diverting the flow temporarily if the popped value 
+												was a 1. As long as the larvae were evenly and predictably spaced out along the stream, this method proved effective. 
+											</p>
+                                            <header>
+												<h3>Final System</h3>
+											</header>
+											<center><a><img src="images/Capstone_results.jpg" alt="" /></a></center>
+											<p>
+												The final system achieved throughput of greater than 1 larvae per second with less than 2 percent sorting error. More crucially, <b>there were no instances
+												of false positives!</b> The total system cost $100 to make compared to the current market sorting solution, COPAS, which costs $400,000. The device is also easily transportable to allow 
+												distribution amongst labs. Meeting all target specifications, this project was deemed a success, earning semi-finalist recognition for the InVenture Prize.
+												Unfortunately, the team was not available to compete deeper into the competition due to job related relocation. The full white papers can be found <a href="Mosquito_Sorter_White_Papers.pdf" target="_blank"> here</a>.
+											</p>
+											<header>
+												<h3>Impact</h3>
+											</header>
+											<p>
+												What makes this project one of my favorite is that I was able to see my efforts lead to real-world results. When scrolling on 
+												Twitter one day, I came across a video of a plane releasing transgenic mosquitoes into the wild as part of a project
+												funded by the Bill Gates Foundation, Target Malaria. My team's efforts had contributed to the successful launch of the initiative.
+											</p>
+											
+										</section>
+									</article>
+
+							</div>
+						</div>
+					</div>
+				</section>
+
+			<!-- Footer -->
+			<section id="footer">
+				<div class="container">
+					<div class="row">
+						<!--
+						<div class="col-8 col-12-medium">
+							<section>
+								<header>
+									<h2>Blandit nisl adipiscing</h2>
+								</header>
+								<ul class="dates">
+									<li>
+										<span class="date">Jan <strong>27</strong></span>
+										<h3><a href="#">Lorem dolor sit amet veroeros</a></h3>
+										<p>Ipsum dolor sit amet veroeros consequat blandit ipsum phasellus lorem consequat etiam.</p>
+									</li>
+									<li>
+										<span class="date">Jan <strong>23</strong></span>
+										<h3><a href="#">Ipsum sed blandit nisl consequat</a></h3>
+										<p>Blandit phasellus lorem ipsum dolor tempor sapien tortor hendrerit adipiscing feugiat lorem.</p>
+									</li>
+									<li>
+										<span class="date">Jan <strong>15</strong></span>
+										<h3><a href="#">Magna tempus lorem feugiat</a></h3>
+										<p>Dolore consequat sed phasellus lorem sed etiam nullam dolor etiam sed amet sit consequat.</p>
+									</li>
+									<li>
+										<span class="date">Jan <strong>12</strong></span>
+										<h3><a href="#">Dolore tempus ipsum feugiat nulla</a></h3>
+										<p>Feugiat lorem dolor sed nullam tempus lorem ipsum dolor sit amet nullam consequat.</p>
+									</li>
+									<li>
+										<span class="date">Jan <strong>10</strong></span>
+										<h3><a href="#">Blandit tempus aliquam?</a></h3>
+										<p>Feugiat sed tempus blandit tempus adipiscing nisl lorem ipsum dolor sit amet dolore.</p>
+									</li>
+								</ul>
+							</section>
+						</div>
+						<div class="col-4 col-12-medium">
+							<section>
+								<header>
+									<h2></h2>
+								</header>
+								<a href="#" class="image featured"><img src="images/pic10.jpg" alt="" /></a>
+								<p>
+									This is <strong>Dopetrope</strong> a free, fully responsive HTML5 site template by
+									<a href="http://twitter.com/ajlkn">AJ</a> for <a href="http://html5up.net/">HTML5 UP</a> It's released for free under
+									the <a href="http://html5up.net/license/">Creative Commons Attribution</a> license so feel free to use it for any personal or commercial project &ndash; just don't forget to credit us!
+								</p>
+								<footer>
+									<ul class="actions">
+										<li><a href="#" class="button">Find out more</a></li>
+									</ul>
+								</footer>
+							</section>
+						</div>
+						-->
+						<div class="col-4 col-6-medium col-12-small">
+							<section>
+								<header>
+									<h2>Recent Online Learning</h2>
+								</header>
+								<ul class="divided">
+									<li><a href="https://cloud.google.com/blog/topics/training-certifications/12-days-of-no-cost-generative-ai-training?mkt_tok=ODA4LUdKVy0zMTQAAAGP2YNFoqIERCMWV0Amq18FYvWkGcjf7m7jHTNNJsVeNtvLX1NA6pFfTFYwDroT-zFbcEThQ-VBWzReeCrTV4cBP_8ToEn6ag2t1UUJUNgrowC5xqfYJCY" target="_blank">Google Generative AI</a></li>
+									<!--
+									<li><a href="#">Lorem ipsum dolor sit amet sit veroeros</a></li>
+									<li><a href="#">Sed et blandit consequat sed tlorem blandit</a></li>
+									<li><a href="#">Adipiscing feugiat phasellus sed tempus</a></li>
+									<li><a href="#">Hendrerit tortor vitae mattis tempor sapien</a></li>
+									<li><a href="#">Sem feugiat sapien id suscipit magna felis nec</a></li>
+									<li><a href="#">Elit class aptent taciti sociosqu ad litora</a></li>
+									-->
+								</ul>
+							</section>
+						</div>
+						<div class="col-4 col-6-medium col-12-small">
+							<section>
+								<header>
+									<h2>My Reading List</h2>
+								</header>
+								<ul class="divided">
+									<li><a href="https://www.goodreads.com/book/show/40796173-sprawlball?ref=nav_sb_ss_1_10" target="_blank">SprawlBall -- Data Evolution of the NBA</a></li>
+									<li><a href="https://www.goodreads.com/book/show/37822619-astroball?from_search=true&from_srp=true&qid=lECDPCfqmH&rank=1" target="_blank">Astroball -- Data Analytics in Baseball </a></li>
+									<li><a href="https://www.goodreads.com/book/show/42348376-secrets-of-sand-hill-road" target="_blank">Secrets of Sand Hill Road -- Venture Capital</a></li>
+									<!--
+									<li><a href="#">Lorem ipsum dolor sit amet sit veroeros</a></li>
+									<li><a href="#">Sed et blandit consequat sed tlorem blandit</a></li>
+									<li><a href="#">Adipiscing feugiat phasellus sed tempus</a></li>
+									<li><a href="#">Hendrerit tortor vitae mattis tempor sapien</a></li>
+									<li><a href="#">Sem feugiat sapien id suscipit magna felis nec</a></li>
+									<li><a href="#">Elit class aptent taciti sociosqu ad litora</a></li>
+									<li><a href="#">Elit class aptent taciti sociosqu ad litora</a></li>
+									<li><a href="#">Elit class aptent taciti sociosqu ad litora</a></li>
+									-->
+								</ul>
+							</section>
+						</div>
+						<div class="col-4 col-12-medium">
+							<section>
+								<header>
+									<h2>Social</h2>
+								</header>
+								<ul class="social">
+									<li><a class="icon brands fa-linkedin-in" href="https://www.linkedin.com/in/tyler-dipentima/" target="_blank"><span class="label">LinkedIn</span></a></li>
+								</ul>
+								<ul class="contact">
+									<li>
+										<h3>Residence</h3>
+										<p>
+											Atlanta, Georgia
+										</p>
+									</li>
+									<li>
+										<h3>Mail</h3>
+										<p>tdipentima3@gatech.edu</p>
+									</li>
+									<li>
+										<h3>Phone</h3>
+										<p>(954) 770-0483</p>
+									</li>
+								</ul>
+							</section>
+						</div>
+						<div class="col-12">
+
+							<!-- Copyright -->
+								<div id="copyright">
+									<ul class="links">
+										<li>&copy; Untitled. All rights reserved.</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+									</ul>
+								</div>
+
+						</div>
+					</div>
+				</div>
+			</section>
+
+		</div>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.dropotron.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+
+	</body>
+</html>

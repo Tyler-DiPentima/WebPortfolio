@@ -1,0 +1,389 @@
+<!DOCTYPE HTML>
+<!--
+	Dopetrope by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>Tyler DiPentima</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+	</head>
+	<body class="left-sidebar is-preload">
+		<div id="page-wrapper">
+
+			<!-- Header -->
+				<section id="header">
+
+					<!-- Logo -->
+					<h1><a href="https://www.linkedin.com/in/tyler-dipentima/" target="_blank">Tyler DiPentima</a></h1>
+
+					<!-- Nav -->
+						<nav id="nav">
+							<ul>
+								<li><a href="index.html">Home</a></li>
+								<li><a href="Project_Main_Page.html">Projects</a></li>
+								<li><a href="Blog_Main_Page.html">Blogs</a></li>
+								<li><a href="About Me.html">About Me</a></li>
+							</ul>
+						</nav>
+
+				</section>
+
+			<!-- Main -->
+				<section id="main">
+					<div class="container">
+						<div class="row">
+							<div class="col-4 col-12-medium">
+
+								<!-- Sidebar -->
+								    
+									<section class="box">
+										<a href="#" class="image featured"><img src="images/pic09.jpg" alt="" /></a>
+										<header>
+											<h3>My Latest Project</h3>
+										</header>
+										<p>Add description of latest project here</p>
+										<footer>
+											<a href="#" class="button alt">Learn More</a>
+										</footer>
+									</section>
+									<section class="box">
+										<header>
+											<h3>Similar Posts</h3>
+										</header>
+										<p>Some other content that may interest you</p>
+										<ul class="divided">
+											<li><a href="#">Example 1 (Blog)</a></li>
+											<li><a href="#">Example 2 (Project)</a></li>
+										</ul>
+										<!-- Not using this button for now
+										<footer>
+											<a href="#" class="button alt">Ipsum consequat</a>
+										</footer>
+										-->
+									</section>
+
+							</div>
+							<div class="col-8 col-12-medium imp-medium">
+
+								<!-- Content -->
+									<article class="box post">
+										<a class="image featured"><img src="images/ChatRoomBanner.jpg" alt="" height="150" /></a>
+										<header>
+											<h2>Client-Server Communication</h2>
+											<p>Exploring the applications of socket programming in C</p>
+										</header>
+										<p>
+										    To get more familiar with client-server communication I created a simple chat room that would allow 
+											users to connect and chat with their friends as long as they know the server IP address and listening port 
+											as well as the server passcode. I created this for both UDP and TCP communication, demoed below using WSL and tmux
+											to show different consoles together. Here I just use the local machine IP as the server for simplicity.
+										</p>
+										<video width="640" height="360" controls>
+											<source src="Media/Chat room TCP.mp4" type="video/mp4">
+											Your browser does not support the video tag.
+										</video>
+										<video width="640" height="360" controls>
+											<source src="Media/Chat room UDP.mp4" type="video/mp4">
+											Your browser does not support the video tag.
+										</video>
+
+										<section>
+											<header>
+												<h3>What I Learned</h3>
+											</header>
+											<p>
+                                                This project opened my eyes to some common features of client-server communication. While I just use the sockets to transfer
+												chat messages here, this communication could easily be adapted to suit an application protocol. The text sent over the sockets could
+												represent commands in a REST API. For example, the server would parse client requests sent over the socket and then perform some functionality based on the 
+												request received. If the client sent "GET some_file.txt", the server could take that local file and send its content over to the client.
+
+											</p>
+											<header>
+												<h3>Taking it a step further</h3>
+											</header>
+											<p>											
+												With this realization, I decided to turn my chat room into a simple GETFILE API that can request a file from the server and 
+												receive its content.
+											</p>
+											<center><a><img src="images/GETFILE diagram.jpg" alt="" height="300" /></a></center>
+											<p>
+												For a one client - one request scenario this was a simple adaption, re-using the request parser from the chat room and reacting with the response header and file contents.
+												However, a true server needs to be able to handle multiple clients all sending requests at once. This was solved by having the server keep a queue of incoming requests and processing them one-by-one.
+											</p>
+											<center><a><img src="images/GETFILE_queue.jpg" alt="" height="250" /></a></center>
+											<p>
+												While this tackles the multi-client problem, this is inefficient and will cause response time delays. If client4 requests file A and that file is very large, the 
+												server will be stuck processing that request while the other clients await their response headers. To fix this, I added boss-worker multi-threading 
+												to the server. In this framework, there is one 'Boss' thread that manages incoming requests and delegates the response processing to other 'Worker' threads. This allows multiple 
+												requests to be processed concurrently! This brings in the need for mutex locking to protect shared data such as the task queue and concurrently accessed files.
+											</p>
+											<center><a><img src="images/Boss_GETFILE.jpg" alt="" height="275" /></a></center>
+										</section>
+										<hr class="solid">
+										<section>
+											<header>
+												<h3>Communication Setup Code</h3>
+												<p> </p>
+												<h3>TCP Code</h3>
+											</header>
+											<p> SERVER
+												<pre><code>
+					// Build a TCP socket
+					socket_signal = socket(AF_INET , SOCK_STREAM , 0);
+					if (socket_signal == -1) {			   
+						printf("Could not create socket");
+					}
+				
+					// Prepare the sockaddr_in structure
+					server.sin_family = AF_INET;
+					server.sin_addr.s_addr = inet_addr("127.0.0.1"); // (or INADDR_ANY)
+					server.sin_port = htons( port );
+					
+					// Attempt bind
+					if( bind(socket_signal,(struct sockaddr *)&server , sizeof(server)) < 0)
+					{
+						puts("bind failed");
+						return 1;
+					}
+					
+					printf("Server started on port %d. Accepting connections\n", port);
+					
+					// Listen, 10 max connections
+					listen(socket_signal , 10);
+												</code></pre>
+												CLIENT 
+												<pre><code>
+					// Build a TCP socket
+					socket_signal = socket(AF_INET , SOCK_STREAM , 0);
+					if (socket_signal == -1)
+					{
+						printf("Could not create socket");
+					}
+                    
+					// Prepare the sockaddr_in structure
+					server.sin_addr.s_addr = inet_addr(hostname);
+					server.sin_family = AF_INET;
+					server.sin_port = htons( port );
+				
+					// Connect to server
+					if (connect(socket_signal , (struct sockaddr *)&server , sizeof(server)) < 0)
+					{
+						puts("connect error");
+						return 1;
+					}		
+												</code></pre>
+											</p>
+											<header>
+												<h3>UDP Code</h3>
+											</header>
+											<p> SERVER
+												<pre><code>
+					//Build a UDP socket								
+					socket_signal = socket(AF_INET , SOCK_DGRAM , 0);
+					if (socket_signal == -1) {
+						printf("Could not create socket");	
+					}
+				
+					//Prepare the sockaddr_in structure
+					memset(&server, 0, sizeof(server));
+					server.sin_family = AF_INET;
+					server.sin_addr.s_addr = inet_addr("127.0.0.1"); // (or INADDR_ANY)
+					server.sin_port = htons( port );
+					
+					//Attempt to bind
+					if( bind(socket_signal,(struct sockaddr *)&server , sizeof(server)) < 0)
+					{
+						puts("bind failed");
+						return 1;
+					}
+					
+					printf("Server started on port %d. Accepting connections\n", port);
+												</code></pre>
+												CLIENT 
+												<pre><code>
+					//Build a UDP socket
+					socket_signal = socket(AF_INET , SOCK_DGRAM , 0);
+					if (socket_signal == -1)
+					{
+						printf("Could not create socket");
+					}
+			
+					//Prepare the sockaddr_in structure
+					memset(&server, 0, sizeof(server));
+					server.sin_addr.s_addr = inet_addr(hostname);
+					server.sin_family = AF_INET;
+					server.sin_port = htons( port );
+					
+					// Attempt to connect to server
+					if(connect(socket_signal, (struct sockaddr *)&server, sizeof(server)) < 0)
+					{
+							printf("\n Error : Connect Failed \n");
+							exit(1);
+					}
+												</code></pre>
+											</p>
+											
+
+											
+										</section>
+									</article>
+
+							</div>
+						</div>
+					</div>
+				</section>
+
+			<!-- Footer -->
+			<section id="footer">
+				<div class="container">
+					<div class="row">
+						<!--
+						<div class="col-8 col-12-medium">
+							<section>
+								<header>
+									<h2>Blandit nisl adipiscing</h2>
+								</header>
+								<ul class="dates">
+									<li>
+										<span class="date">Jan <strong>27</strong></span>
+										<h3><a href="#">Lorem dolor sit amet veroeros</a></h3>
+										<p>Ipsum dolor sit amet veroeros consequat blandit ipsum phasellus lorem consequat etiam.</p>
+									</li>
+									<li>
+										<span class="date">Jan <strong>23</strong></span>
+										<h3><a href="#">Ipsum sed blandit nisl consequat</a></h3>
+										<p>Blandit phasellus lorem ipsum dolor tempor sapien tortor hendrerit adipiscing feugiat lorem.</p>
+									</li>
+									<li>
+										<span class="date">Jan <strong>15</strong></span>
+										<h3><a href="#">Magna tempus lorem feugiat</a></h3>
+										<p>Dolore consequat sed phasellus lorem sed etiam nullam dolor etiam sed amet sit consequat.</p>
+									</li>
+									<li>
+										<span class="date">Jan <strong>12</strong></span>
+										<h3><a href="#">Dolore tempus ipsum feugiat nulla</a></h3>
+										<p>Feugiat lorem dolor sed nullam tempus lorem ipsum dolor sit amet nullam consequat.</p>
+									</li>
+									<li>
+										<span class="date">Jan <strong>10</strong></span>
+										<h3><a href="#">Blandit tempus aliquam?</a></h3>
+										<p>Feugiat sed tempus blandit tempus adipiscing nisl lorem ipsum dolor sit amet dolore.</p>
+									</li>
+								</ul>
+							</section>
+						</div>
+						<div class="col-4 col-12-medium">
+							<section>
+								<header>
+									<h2></h2>
+								</header>
+								<a href="#" class="image featured"><img src="images/pic10.jpg" alt="" /></a>
+								<p>
+									This is <strong>Dopetrope</strong> a free, fully responsive HTML5 site template by
+									<a href="http://twitter.com/ajlkn">AJ</a> for <a href="http://html5up.net/">HTML5 UP</a> It's released for free under
+									the <a href="http://html5up.net/license/">Creative Commons Attribution</a> license so feel free to use it for any personal or commercial project &ndash; just don't forget to credit us!
+								</p>
+								<footer>
+									<ul class="actions">
+										<li><a href="#" class="button">Find out more</a></li>
+									</ul>
+								</footer>
+							</section>
+						</div>
+						-->
+						<div class="col-4 col-6-medium col-12-small">
+							<section>
+								<header>
+									<h2>Recent Online Learning</h2>
+								</header>
+								<ul class="divided">
+									<li><a href="https://cloud.google.com/blog/topics/training-certifications/12-days-of-no-cost-generative-ai-training?mkt_tok=ODA4LUdKVy0zMTQAAAGP2YNFoqIERCMWV0Amq18FYvWkGcjf7m7jHTNNJsVeNtvLX1NA6pFfTFYwDroT-zFbcEThQ-VBWzReeCrTV4cBP_8ToEn6ag2t1UUJUNgrowC5xqfYJCY" target="_blank">Google Generative AI</a></li>
+									<!--
+									<li><a href="#">Lorem ipsum dolor sit amet sit veroeros</a></li>
+									<li><a href="#">Sed et blandit consequat sed tlorem blandit</a></li>
+									<li><a href="#">Adipiscing feugiat phasellus sed tempus</a></li>
+									<li><a href="#">Hendrerit tortor vitae mattis tempor sapien</a></li>
+									<li><a href="#">Sem feugiat sapien id suscipit magna felis nec</a></li>
+									<li><a href="#">Elit class aptent taciti sociosqu ad litora</a></li>
+									-->
+								</ul>
+							</section>
+						</div>
+						<div class="col-4 col-6-medium col-12-small">
+							<section>
+								<header>
+									<h2>My Reading List</h2>
+								</header>
+								<ul class="divided">
+									<li><a href="https://www.goodreads.com/book/show/40796173-sprawlball?ref=nav_sb_ss_1_10" target="_blank">SprawlBall -- Data Evolution of the NBA</a></li>
+									<li><a href="https://www.goodreads.com/book/show/37822619-astroball?from_search=true&from_srp=true&qid=lECDPCfqmH&rank=1" target="_blank">Astroball -- Data Analytics in Baseball </a></li>
+									<li><a href="https://www.goodreads.com/book/show/42348376-secrets-of-sand-hill-road" target="_blank">Secrets of Sand Hill Road -- Venture Capital</a></li>
+									<!--
+									<li><a href="#">Lorem ipsum dolor sit amet sit veroeros</a></li>
+									<li><a href="#">Sed et blandit consequat sed tlorem blandit</a></li>
+									<li><a href="#">Adipiscing feugiat phasellus sed tempus</a></li>
+									<li><a href="#">Hendrerit tortor vitae mattis tempor sapien</a></li>
+									<li><a href="#">Sem feugiat sapien id suscipit magna felis nec</a></li>
+									<li><a href="#">Elit class aptent taciti sociosqu ad litora</a></li>
+									<li><a href="#">Elit class aptent taciti sociosqu ad litora</a></li>
+									<li><a href="#">Elit class aptent taciti sociosqu ad litora</a></li>
+									-->
+								</ul>
+							</section>
+						</div>
+						<div class="col-4 col-12-medium">
+							<section>
+								<header>
+									<h2>Social</h2>
+								</header>
+								<ul class="social">
+									<li><a class="icon brands fa-linkedin-in" href="https://www.linkedin.com/in/tyler-dipentima/" target="_blank"><span class="label">LinkedIn</span></a></li>
+								</ul>
+								<ul class="contact">
+									<li>
+										<h3>Residence</h3>
+										<p>
+											Atlanta, Georgia
+										</p>
+									</li>
+									<li>
+										<h3>Mail</h3>
+										<p>tdipentima3@gatech.edu</p>
+									</li>
+									<li>
+										<h3>Phone</h3>
+										<p>(954) 770-0483</p>
+									</li>
+								</ul>
+							</section>
+						</div>
+						<div class="col-12">
+
+							<!-- Copyright -->
+								<div id="copyright">
+									<ul class="links">
+										<li>&copy; Untitled. All rights reserved.</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+									</ul>
+								</div>
+
+						</div>
+					</div>
+				</div>
+			</section>
+
+		</div>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.dropotron.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+
+	</body>
+</html>

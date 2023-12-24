@@ -1,0 +1,373 @@
+<!DOCTYPE HTML>
+<!--
+	Dopetrope by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>Tyler DiPentima</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+	</head>
+	<body class="left-sidebar is-preload">
+		<div id="page-wrapper">
+
+			<!-- Header -->
+				<section id="header">
+
+					<!-- Logo -->
+					<h1><a href="https://www.linkedin.com/in/tyler-dipentima/" target="_blank">Tyler DiPentima</a></h1>
+
+					<!-- Nav -->
+						<nav id="nav">
+							<ul>
+								<li><a href="index.html">Home</a></li>
+								<li><a href="Project_Main_Page.html">Projects</a></li>
+								<li><a href="Blog_Main_Page.html">Blogs</a></li>
+								<li><a href="About Me.html">About Me</a></li>
+							</ul>
+						</nav>
+
+				</section>
+
+			<!-- Main -->
+				<section id="main">
+					<div class="container">
+						<div class="row">
+							<div class="col-4 col-12-medium">
+
+								<!-- Sidebar -->
+								    
+									<section class="box">
+										<a href="#" class="image featured"><img src="images/pic09.jpg" alt="" /></a>
+										<header>
+											<h3>My Latest Project</h3>
+										</header>
+										<p>Add description of latest project here</p>
+										<footer>
+											<a href="#" class="button alt">Learn More</a>
+										</footer>
+									</section>
+									<section class="box">
+										<header>
+											<h3>Similar Posts</h3>
+										</header>
+										<p>Some other content that may interest you</p>
+										<ul class="divided">
+											<li><a href="#">Example 1 (Blog)</a></li>
+											<li><a href="#">Example 2 (Project)</a></li>
+										</ul>
+										<!-- Not using this button for now
+										<footer>
+											<a href="#" class="button alt">Ipsum consequat</a>
+										</footer>
+										-->
+									</section>
+
+							</div>
+							<div class="col-8 col-12-medium imp-medium">
+
+								<!-- Content -->
+									<article class="box post">
+										<a class="image featured"><img src="images/ANKI_Banner.jpg" alt="" /></a>
+										<header>
+											<h2>Anki Cozmo</h2>
+											<p>Robotic Programming using Python and the Anki SDK </p>
+										</header>
+										<p>
+										   Using the Anki Cozmo, I carried out a number of projects each showcasing a different robotic programming technique.
+										</p>
+
+										<section>
+											<hr class="solid">
+											<header>
+												<h3>Object Recognition</h3>
+											</header>
+											<p>
+												The first step in using the robot was to enable it to interpret it's visual percepts. This was done by configuring the 
+												embedded camera to constantly stream greyscale images and then extracting the features of the images to feed through a classifier. There were three classes in this case and the classification accuracy was boosted by predicting the class over a 
+												window of time. Rather than taking one picture, classifying it, and trusting this prediction, it is safer to do this over many images 
+												taken over a window of time. The ultimate prediction is then defined as the most commonly predicted class. Depending on what class the robot perceived,
+												it would perform a task. These tasks included simple mechanisms like moving a cube from A to B, driving in a square, and driving in an S shape. Each task was 
+												performed by directly setting the speed and angle values for the robotic wheels. The code for forming the S shape is shown below.
+											</p>
+											<pre><code>
+						robot = sdk_conn.wait_for_robot()
+						robot.drive_wheels(25, 75, duration = 5) # turn left
+						robot.drive_wheels(75, 25, duration = 6) # turn right
+											</code>
+											</pre>
+											<hr class="solid">
+											<header>
+												<h3>Localization</h3>
+											</header>
+											<p>
+												Next, the robot needed to be able to take in percepts and use them to localize itself in a 2D mapping. This was done using a particle filter to constantly update 
+												a probability distribution of where the robot is most likely located. We start with a few thousand particles, or prediction points, randomly distributed throughout the grid world with
+												each particle object having an (x,y) position and a heading. As the algorithm performs motion and measurement updates, the particles start to clump together and place more confidence in a 
+												certain prediction. In the below picture, the red triangle is the true position while the grey triangle is the average positional guess of all the particles.
+											</p>
+											<center><a><img src="images/PF_step1.jpg" alt="" height="400" width="400"/></a></center>
+                                            <p>
+												As the updates continue and the solution gets closer to convergence, the predicted location can be seen directly lining up with the ground truth location.
+                                            </p>
+											<center><a><img src="images/PF_2.jpg" alt="" height="400" width="400"/></a></center>
+											<p>
+												These updates were done by leveraging the robot's odometer readings. The motion update's purpose is to simulate movement
+											     of all the particles each time step. This is done by taking in a distance and direction to move, turning the particles to match the target heading, and moving the proper distance in 
+												 that heading. 
+											</p>
+<pre><code>
+		# Motion Update
+	            for i, _ in enumerate(motion_particles):
+					prev_angle = motion_particles[i].h 
+					[xr , yr] = rotate_point(odom[0], odom[1], prev_angle)
+					new_x  = motion_particles[i].x + xr
+					new_y  = motion_particles[i].y + yr
+					new_h  = motion_particles[i].h + odom[2]
+
+					new_x, new_y, new_h = add_odometry_noise((new_x, new_y, new_h))
+
+					motion_particles[i] = Particle(new_x,new_y,new_h)
+
+				return motion_particles
+</code>
+						</pre>
+						                    <p>
+												For the measurement update, we can think of this as the particle population being refined. A gaussian probability density is calculated for each particle at this stage that is recorded amongst all particles, normalized, and then randomy sampled from
+												to determine which particles should be kept around. The rest of the population is replaced with newly spawned, random particles. The PDF captures the differences between the robot's observed heading/position relative to a marker the robot camera sees and the relative heading/position expected by the 
+												robot with its current particle filter prediction. The simplified logit equation is seen below. If a particle is off screen after a motion update, it is immediately designated for replacement. 
+											</p>
+											<center><a><img src="images/PF_eq.jpg" alt="" height="75" width="700"/></a></center>
+											<hr class="solid">
+											<header>
+												<h3>Path Planning</h3>
+											</header>
+											<p>
+											    With the robot now armed with the ability to understand it's location in a grid world, the next challenge was to have the robot be able to plan a path to a goal point. The robot would know the world dimensions but would have to recognize any obstacles.
+												This was done using RRTs, or Rapidly-exploring Random Trees, to first plan a path to the goal state assuming no obstacles are present and then sending the robot along that path. If the robot encountered an obstacle along the way through its camera, 
+												it woud stop and re-plan its path to the goal now taking the obstacle into consideration.
+											</p>
+											<p>
+												Under the hood, the RRT algorithm is somewhat simple. Each time step the robot randomly samples from all the locations in the grid world. Each current node in the tree has their euclidean distance to this random location calculated. The nearest node 
+												is then expanded towards the random node if no obstacles are preventing the link. We cap the maximum expansion distance here to reign in the expansion. As we progress through 
+												iterations, the tree eventually expands to the goal state and the tree can be backtraced to extract a path to the goal. This path is then smoothed by removing nodes where possible. For example, if nodes A and C can be connected 
+												by a straight line without hitting any obstacles, there is no need to keep node B around. A maximum link distance is still enforced to allow the robot to travel shorter, less error-prone distances at a time. Examples of my path planning algoritm with a known set of obstacles in the world can be seen below.
+											</p>
+											<video width="640" height="360" controls>
+												<source src="Media/Untitled video - Made with Clipchamp.mp4" type="video/mp4">
+												Your browser does not support the video tag.
+											</video>
+											<video width="640" height="360" controls>
+												<source src="Media/Untitled video - Made with Clipchamp (1).mp4" type="video/mp4">
+												Your browser does not support the video tag.
+											</video>
+											<hr class="solid">
+											<header>
+												<h3>PID Control</h3>
+											</header>
+											<p>
+												For one last project, the robot was challenged with moving in a straight line as fast as it can to reach a designated 'parking' zone. The challenge here is that 
+												a block is placed just past the zone, requiring the robot to come to a precise stop despite coming in at a high speed. Furthermore, the robot needed to be robust to
+												any disturbances it experienced along the way, adjusting its speed accordingly. 
+											</p>
+											<center><a><img src="images/PID_Prob.jpg" alt=""></a></center>
+											<p>
+												Using the robot's camera to record it's current position relative to the cube, the error between the robot's current
+												position and the position marking the center of the parking zone was recorded. The time derivate as well as the sum of the errors over time were also tracked.
+											</p>
+											<pre><code>
+			while(not converged):
+        
+			    # Perceive Current Robot Position
+				distance_away_x = cube_x - robot.pose.position.x
+
+				# PID
+				# Record time passed for time derivative
+				time_passed = time.time() - prev_time
+				prev_time = time.time() # Store for next calculations
+
+				#Compute all error term values
+				error = distance_away_x - 130 # 130 is the middle point of parking zone
+				error_sum = error_sum + error
+				error_deriv = (error - error_prev) / time_passed
+
+				# Store current error for next calculations
+				error_prev = error 
+
+				pid = (kp * error) + (kd * error_deriv) + (ki * error_sum)
+				move(robot, pid, pid)
+											</code></pre>
+										    <p>
+												Looping until the robot reaches the goal state, this PID loop constantly adapts the robot speed to slow down steadily as it approaches
+												the goal for a smooth parking job. The real challenge with this algorithm was the PID tuning of the proportional, derivative, and integral gains. 
+												I had started off with an eyeball approach, adjusting the gains as I saw issues manifest in the robot movement. For example, if the robot was getting to the 
+												goal too slowly I bumped up the proportional gain. If I saw oscillations around the parking space, I bumped up the derivative gain. This worked well, but was not 
+												perfect given the interactions between the different gains. I turned to the Ziegler–Nichols Tuning method, starting with only a non-zero p-gain. 
+												I incrementally bumped up the proportional gain until I observed steady-state oscillation. Using this gain value, I was able to calculate the ideal gain values for my system using the 
+												Ziegler–Nichols gain chart.
+											</p>
+											<p>
+												With a fully tuned PID controller, the robot was able to reach the goal state in under 2 seconds while stopping perfectly in the parking zone.
+											</p>
+	
+										</section>
+									</article>
+
+							</div>
+						</div>
+					</div>
+				</section>
+
+			<!-- Footer -->
+			<section id="footer">
+				<div class="container">
+					<div class="row">
+						<!--
+						<div class="col-8 col-12-medium">
+							<section>
+								<header>
+									<h2>Blandit nisl adipiscing</h2>
+								</header>
+								<ul class="dates">
+									<li>
+										<span class="date">Jan <strong>27</strong></span>
+										<h3><a href="#">Lorem dolor sit amet veroeros</a></h3>
+										<p>Ipsum dolor sit amet veroeros consequat blandit ipsum phasellus lorem consequat etiam.</p>
+									</li>
+									<li>
+										<span class="date">Jan <strong>23</strong></span>
+										<h3><a href="#">Ipsum sed blandit nisl consequat</a></h3>
+										<p>Blandit phasellus lorem ipsum dolor tempor sapien tortor hendrerit adipiscing feugiat lorem.</p>
+									</li>
+									<li>
+										<span class="date">Jan <strong>15</strong></span>
+										<h3><a href="#">Magna tempus lorem feugiat</a></h3>
+										<p>Dolore consequat sed phasellus lorem sed etiam nullam dolor etiam sed amet sit consequat.</p>
+									</li>
+									<li>
+										<span class="date">Jan <strong>12</strong></span>
+										<h3><a href="#">Dolore tempus ipsum feugiat nulla</a></h3>
+										<p>Feugiat lorem dolor sed nullam tempus lorem ipsum dolor sit amet nullam consequat.</p>
+									</li>
+									<li>
+										<span class="date">Jan <strong>10</strong></span>
+										<h3><a href="#">Blandit tempus aliquam?</a></h3>
+										<p>Feugiat sed tempus blandit tempus adipiscing nisl lorem ipsum dolor sit amet dolore.</p>
+									</li>
+								</ul>
+							</section>
+						</div>
+						<div class="col-4 col-12-medium">
+							<section>
+								<header>
+									<h2></h2>
+								</header>
+								<a href="#" class="image featured"><img src="images/pic10.jpg" alt="" /></a>
+								<p>
+									This is <strong>Dopetrope</strong> a free, fully responsive HTML5 site template by
+									<a href="http://twitter.com/ajlkn">AJ</a> for <a href="http://html5up.net/">HTML5 UP</a> It's released for free under
+									the <a href="http://html5up.net/license/">Creative Commons Attribution</a> license so feel free to use it for any personal or commercial project &ndash; just don't forget to credit us!
+								</p>
+								<footer>
+									<ul class="actions">
+										<li><a href="#" class="button">Find out more</a></li>
+									</ul>
+								</footer>
+							</section>
+						</div>
+						-->
+						<div class="col-4 col-6-medium col-12-small">
+							<section>
+								<header>
+									<h2>Recent Online Learning</h2>
+								</header>
+								<ul class="divided">
+									<li><a href="https://cloud.google.com/blog/topics/training-certifications/12-days-of-no-cost-generative-ai-training?mkt_tok=ODA4LUdKVy0zMTQAAAGP2YNFoqIERCMWV0Amq18FYvWkGcjf7m7jHTNNJsVeNtvLX1NA6pFfTFYwDroT-zFbcEThQ-VBWzReeCrTV4cBP_8ToEn6ag2t1UUJUNgrowC5xqfYJCY" target="_blank">Google Generative AI</a></li>
+									<!--
+									<li><a href="#">Lorem ipsum dolor sit amet sit veroeros</a></li>
+									<li><a href="#">Sed et blandit consequat sed tlorem blandit</a></li>
+									<li><a href="#">Adipiscing feugiat phasellus sed tempus</a></li>
+									<li><a href="#">Hendrerit tortor vitae mattis tempor sapien</a></li>
+									<li><a href="#">Sem feugiat sapien id suscipit magna felis nec</a></li>
+									<li><a href="#">Elit class aptent taciti sociosqu ad litora</a></li>
+									-->
+								</ul>
+							</section>
+						</div>
+						<div class="col-4 col-6-medium col-12-small">
+							<section>
+								<header>
+									<h2>My Reading List</h2>
+								</header>
+								<ul class="divided">
+									<li><a href="https://www.goodreads.com/book/show/40796173-sprawlball?ref=nav_sb_ss_1_10" target="_blank">SprawlBall -- Data Evolution of the NBA</a></li>
+									<li><a href="https://www.goodreads.com/book/show/37822619-astroball?from_search=true&from_srp=true&qid=lECDPCfqmH&rank=1" target="_blank">Astroball -- Data Analytics in Baseball </a></li>
+									<li><a href="https://www.goodreads.com/book/show/42348376-secrets-of-sand-hill-road" target="_blank">Secrets of Sand Hill Road -- Venture Capital</a></li>
+									<!--
+									<li><a href="#">Lorem ipsum dolor sit amet sit veroeros</a></li>
+									<li><a href="#">Sed et blandit consequat sed tlorem blandit</a></li>
+									<li><a href="#">Adipiscing feugiat phasellus sed tempus</a></li>
+									<li><a href="#">Hendrerit tortor vitae mattis tempor sapien</a></li>
+									<li><a href="#">Sem feugiat sapien id suscipit magna felis nec</a></li>
+									<li><a href="#">Elit class aptent taciti sociosqu ad litora</a></li>
+									<li><a href="#">Elit class aptent taciti sociosqu ad litora</a></li>
+									<li><a href="#">Elit class aptent taciti sociosqu ad litora</a></li>
+									-->
+								</ul>
+							</section>
+						</div>
+						<div class="col-4 col-12-medium">
+							<section>
+								<header>
+									<h2>Social</h2>
+								</header>
+								<ul class="social">
+									<li><a class="icon brands fa-linkedin-in" href="https://www.linkedin.com/in/tyler-dipentima/" target="_blank"><span class="label">LinkedIn</span></a></li>
+								</ul>
+								<ul class="contact">
+									<li>
+										<h3>Residence</h3>
+										<p>
+											Atlanta, Georgia
+										</p>
+									</li>
+									<li>
+										<h3>Mail</h3>
+										<p>tdipentima3@gatech.edu</p>
+									</li>
+									<li>
+										<h3>Phone</h3>
+										<p>(954) 770-0483</p>
+									</li>
+								</ul>
+							</section>
+						</div>
+						<div class="col-12">
+
+							<!-- Copyright -->
+								<div id="copyright">
+									<ul class="links">
+										<li>&copy; Untitled. All rights reserved.</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+									</ul>
+								</div>
+
+						</div>
+					</div>
+				</div>
+			</section>
+
+		</div>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.dropotron.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+
+	</body>
+</html>
